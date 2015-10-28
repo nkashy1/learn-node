@@ -1,11 +1,34 @@
 var fs = require('graceful-fs');
 
 var dataPath = 'data/';
-var files = fs.readdirSync(dataPath);
-var allData = files.map(function(file) {
-	return fs.readFileSync(dataPath + file).toString();
-})
+function onReadDir(err, files) {
+	if (err) {
+		throw err;
+	}
 
-console.log('Finished:');
-console.log(allData);
-console.log('Files read: ', allData.length);
+	readTillEnd(null, files, null);
+}
+
+var allData = [];
+function readTillEnd(err, files, data) {
+	if (err) {
+		throw err;
+	}
+
+	if (data) {
+		allData.push(data.toString());
+	}
+
+	var currentFile = files.shift();
+	if (currentFile) {
+		fs.readFile(dataPath + currentFile, function(err, data) {
+			readTillEnd(err, files, data);
+		});
+	} else {
+		console.log('Finished:');
+		console.log(allData);
+		console.log('Files read: ', allData.length)
+	}
+}
+
+fs.readdir(dataPath, onReadDir);
